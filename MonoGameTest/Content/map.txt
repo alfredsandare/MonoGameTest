@@ -1,0 +1,4 @@
+VisualObject tiles/grass 1*32 0 32 32 0 0
+VisualObject tiles/grass_top_ground 1*32 -1*32 32 32 0 0
+VisualObject tiles/ground 1*32 -2*32 32 32 0 1
+VisualObject tiles/ground 1*32 -3*32 32 32 0 1
