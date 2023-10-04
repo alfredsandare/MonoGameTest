@@ -97,7 +97,6 @@ namespace MonoGameTest
 
 
             int v = 0;
-            int s = 0;
             /*
             using (var stream = TitleContainer.OpenStream("Content\\map.txt"))
             {
