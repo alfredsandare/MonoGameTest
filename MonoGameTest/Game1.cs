@@ -97,6 +97,7 @@ namespace MonoGameTest
 
 
             int v = 0;
+            int s = 0;
             /*
             using (var stream = TitleContainer.OpenStream("Content\\map.txt"))
             {
@@ -107,8 +108,10 @@ namespace MonoGameTest
             }
             */
 
-            
-            test = File.ReadAllLines("C:\\users\\04alsa25\\source\\repos\\MonoGameTest\\MonoGameTest\\Content\\map.txt");
+
+            string path = "C:\\Users\\alfre\\Source\\repos\\alfredsandare\\MonoGameTest\\MonoGameTest\\Content\\map.txt";
+            //string path = "C:\\users\\04alsa25\\source\\repos\\MonoGameTest\\MonoGameTest\\Content\\map.txt";
+            test = File.ReadAllLines(path);
 
             foreach(string s  in test)
             {
