@@ -104,7 +104,7 @@ public class VisualObject
 		int[] coords2 = { x, y, x + width, y, x, y + height, x + width, y + height };
 		for (int i = 0; i < 8; i+=2)
 		{
-			if (this.xPos < coords2[i] && coords2[i] < this.xPos + this.hitboxWidth && this.yPos < coords2[i + 1] && coords2[i + 1] < this.yPos + this.hitboxHeight)
+			if (this.xPos < coords2[i] && coords2[i] <= this.xPos + this.hitboxWidth && this.yPos < coords2[i + 1] && coords2[i + 1] <= this.yPos + this.hitboxHeight)
 			{
 				Debug.WriteLine("bingo {0} {1} {2}", this.yPos, coords2[i + 1], this.yPos + this.hitboxHeight);
 				return true;

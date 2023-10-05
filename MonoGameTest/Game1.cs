@@ -106,8 +106,8 @@ namespace MonoGameTest
             */
 
 
-            string path = "C:\\Users\\alfre\\Source\\repos\\alfredsandare\\MonoGameTest\\MonoGameTest\\Content\\map.txt";
-            //string path = "C:\\users\\04alsa25\\source\\repos\\MonoGameTest\\MonoGameTest\\Content\\map.txt";
+            //string path = "C:\\Users\\alfre\\Source\\repos\\alfredsandare\\MonoGameTest\\MonoGameTest\\Content\\map.txt";
+            string path = "C:\\users\\04alsa25\\source\\repos\\MonoGameTest\\MonoGameTest\\Content\\map.txt";
             test = File.ReadAllLines(path);
 
             foreach(string s  in test)
