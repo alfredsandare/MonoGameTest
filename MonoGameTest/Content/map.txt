@@ -13,3 +13,14 @@ VisualObject tiles/ground 96 -64 32 32 1 0
 VisualObject tiles/ground 96 -128 32 32 1 1
 VisualObject tiles/grass 64 0 32 32 1 0
 VisualObject tiles/grass 96 0 32 32 1 0
+VisualObject tiles/ladder_bottom 128 -32 32 32 1 0
+VisualObject tiles/ladder_middle 128 -64 32 32 1 0
+VisualObject tiles/ladder_middle 128 -96 32 32 1 0
+VisualObject tiles/ladder_middle 128 -128 32 32 1 0
+VisualObject tiles/ladder_top 128 -160 32 32 1 0
+VisualObject tiles/ground 160 -128 32 32 1 1
+VisualObject tiles/ground 160 -96 32 32 1 1
+VisualObject tiles/ground 160 -64 32 32 1 0
+VisualObject tiles/grass_top_ground 160 -32 32 32 1 0
+VisualObject tiles/grass 128 0 32 32 1 0
+VisualObject tiles/grass 160 0 32 32 1 0

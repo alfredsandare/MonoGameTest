@@ -34,7 +34,10 @@ namespace MonoGameTest
 
             "tiles/grass",
             "tiles/grass_top_ground",
-            "tiles/ground"
+            "tiles/ground",
+            "tiles/ladder_top",
+            "tiles/ladder_middle",
+            "tiles/ladder_bottom"
         };
 
         float cameraXPos = 0;
