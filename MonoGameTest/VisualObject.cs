@@ -15,6 +15,8 @@ public class VisualObject
 	public int hitboxHeight;
 	public int layer;
 	public bool isSolid;
+	private int hitboxXOffset;
+	private int hitboxYOffset;
 
     public VisualObject(List<SpriteComponent> spriteComponents, int xPos, int yPos, int hitBoxWidth, int hitboxHeight, int layer, bool isSolid)
 	{
@@ -25,6 +27,14 @@ public class VisualObject
 		this.hitboxHeight = hitboxHeight;
 		this.layer = layer;
 		this.isSolid = isSolid;
+		this.hitboxXOffset = 0;
+		this.hitboxYOffset = 0;
+	}
+
+	public void SetHitboxOffset(int x, int y)
+	{
+		this.hitboxXOffset = x;
+		this.hitboxYOffset = y;
 	}
 
 	public void Move (string xDirection, string yDirection, double speed, double deltaTime, List<VisualObject> visualObjects, int thisObjectIndex)
@@ -49,10 +59,10 @@ public class VisualObject
 				{
 					int[] distances =
 					{
-						Math.Abs(visualObjects[i].xPos - (this.xPos + this.hitboxWidth)), //snap to the left
-						Math.Abs(visualObjects[i].yPos - (this.yPos + this.hitboxHeight)), //snap to the top
-						Math.Abs(visualObjects[i].xPos + visualObjects[i].hitboxWidth - this.xPos), //snap to the right
-						Math.Abs(visualObjects[i].yPos + visualObjects[i].hitboxHeight - this.yPos), //snap to the bottom
+						Math.Abs(visualObjects[i].xPos - (this.xPos + this.hitboxXOffset + this.hitboxWidth)), //snap to the left
+						Math.Abs(visualObjects[i].yPos - (this.yPos + this.hitboxYOffset + this.hitboxHeight)), //snap to the top
+						Math.Abs(visualObjects[i].xPos + visualObjects[i].hitboxWidth - this.xPos - this.hitboxXOffset), //snap to the right
+						Math.Abs(visualObjects[i].yPos + visualObjects[i].hitboxHeight - this.yPos - this.hitboxYOffset), //snap to the bottom
 					};
 
 					int smallestDistance = 999999999;
@@ -65,7 +75,7 @@ public class VisualObject
 							direction = j;
 						}
 					}
-					//Debug.WriteLine("snapping to {0}", direction);
+					Debug.WriteLine("snapping to {0}", direction);
 					switch (direction)
 					{
 						case 0:
@@ -90,8 +100,10 @@ public class VisualObject
 
     public bool EntitiesOverlap(int x, int y, int width, int height)
     {
+		int selfXPos = this.xPos + this.hitboxXOffset;
+		int selfYPos = this.yPos + this.hitboxYOffset;
 		//if any of the first rectangle's 4 corners is inside the second rectangle
-        int[] coords1 = { this.xPos, this.yPos, this.xPos + this.hitboxWidth, this.yPos, this.xPos, this.yPos + this.hitboxHeight, this.xPos + this.hitboxWidth, this.yPos + this.hitboxHeight };
+        int[] coords1 = { selfXPos, selfYPos, selfXPos + this.hitboxWidth, selfYPos, selfXPos, selfYPos + this.hitboxHeight, selfXPos + this.hitboxWidth, selfYPos + this.hitboxHeight };
         for (int i = 0; i < 8; i += 2)
         {
             if (x < coords1[i] && coords1[i] < x + width && y < coords1[i + 1] && coords1[i + 1] < y + height)
@@ -101,12 +113,12 @@ public class VisualObject
         }
 
 		//if any of the second rectangle's 4 corners is inside the first rectangle
+		
 		int[] coords2 = { x, y, x + width, y, x, y + height, x + width, y + height };
 		for (int i = 0; i < 8; i+=2)
 		{
-			if (this.xPos < coords2[i] && coords2[i] <= this.xPos + this.hitboxWidth && this.yPos < coords2[i + 1] && coords2[i + 1] <= this.yPos + this.hitboxHeight)
+			if (selfXPos < coords2[i] && coords2[i] <= selfXPos + this.hitboxWidth && selfYPos < coords2[i + 1] && coords2[i + 1] <= selfYPos + this.hitboxHeight)
 			{
-				Debug.WriteLine("bingo {0} {1} {2}", this.yPos, coords2[i + 1], this.yPos + this.hitboxHeight);
 				return true;
 			}
 		}

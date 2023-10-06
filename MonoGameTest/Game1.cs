@@ -12,34 +12,14 @@ namespace MonoGameTest
 {
     public class Game1 : Game
     {
+
+        //readonly string string PATH = "C:\\Users\\alfre\\Source\\repos\\alfredsandare\\MonoGameTest\\MonoGameTest\\Content\\";
+        //readonly string PATH = "C:\\users\\04alsa25\\source\\repos\\MonoGameTest\\MonoGameTest\\Content\\";
+        readonly string PATH = Directory.GetCurrentDirectory() + "\\Content\\";
+
         List<VisualObject> visualObjects;
         IDictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
-        string[] graphics = { "ball",
-            "blackbox",
-            "greenbox",
-            "redbox" ,
-            "player_stand_down",
-            "player_stand_left",
-            "player_stand_right",
-            "player_stand_up",
-            "player_walk_down_1",
-            "player_walk_down_2",
-            "player_walk_left_1",
-            "player_walk_left_2",
-            "player_walk_right_1",
-            "player_walk_right_2",
-            "player_walk_up_1",
-            "player_walk_up_2",
-            "32x64_black",
-
-            "tiles/grass",
-            "tiles/grass_top_ground",
-            "tiles/ground",
-            "tiles/ladder_top",
-            "tiles/ladder_middle",
-            "tiles/ladder_bottom"
-        };
-
+       
         float cameraXPos = 0;
         float cameraYPos = 0;
 
@@ -80,7 +60,6 @@ namespace MonoGameTest
             Animation playerStandUp = new Animation(new List<string>() { "player_stand_up" }, new List<float> { 1 });
             Animation playerStandDown = new Animation(new List<string>() { "player_stand_down" }, new List<float> { 1 });
 
-
             IDictionary<string, Animation> playerAnimations = new Dictionary<string, Animation>() {
                 { "player_stand_right", playerStandRight },
                 { "player_stand_left", playerStandLeft },
@@ -93,8 +72,8 @@ namespace MonoGameTest
             };
 
             visualObjects = new List<VisualObject>();
-            player = new Player(new List<SpriteComponent> { new SpriteComponent("player_stand_right", 0, 0, playerAnimations), new SpriteComponent("32x64_black", 0, 0, null) }, -60, 100, 32, 64, 1, true);
-
+            player = new Player(new List<SpriteComponent> { new SpriteComponent("player_stand_right", 0, 0, playerAnimations) }, -60, 100, 27, 54, 1, true);
+            player.SetHitboxOffset(24, 9);
 
             string[] test;
 
@@ -109,9 +88,7 @@ namespace MonoGameTest
             */
 
 
-            //string path = "C:\\Users\\alfre\\Source\\repos\\alfredsandare\\MonoGameTest\\MonoGameTest\\Content\\map.txt";
-            string path = "C:\\users\\04alsa25\\source\\repos\\MonoGameTest\\MonoGameTest\\Content\\map.txt";
-            test = File.ReadAllLines(path);
+            test = File.ReadAllLines(PATH+"map.txt");
 
             foreach(string s  in test)
             {
@@ -142,8 +119,23 @@ namespace MonoGameTest
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            foreach (string s in graphics) textures.Add(s, Content.Load<Texture2D>(s));
+            //foreach (string s in graphics) textures.Add(s, Content.Load<Texture2D>(s));
 
+            string[] files = Directory.GetFiles(PATH + "graphics\\");
+            foreach (string file in files)
+            {
+                string fileName = file.Split("\\")[file.Split("\\").Length - 1];
+                fileName = fileName.Substring(0, fileName.Length - 4);
+                textures.Add(fileName, Content.Load<Texture2D>("graphics\\" + fileName));
+            }
+
+            files = Directory.GetFiles(PATH + "graphics\\tiles\\");
+            foreach (string file in files)
+            {
+                string fileName = "tiles/" + file.Split("\\")[file.Split("\\").Length - 1];
+                fileName = fileName.Substring(0, fileName.Length - 4);
+                textures.Add(fileName, Content.Load<Texture2D>("graphics\\" + fileName));
+            }
             //map = Content.Load<string>("map");
         }
 
@@ -151,7 +143,6 @@ namespace MonoGameTest
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-
 
             var kstate = Keyboard.GetState();
             //if (!kstate.IsKeyDown(Keys.S) && kstate.IsKeyDown(Keys.W)) visualObjects[0].yPos -= (int)(cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds);
@@ -219,7 +210,10 @@ namespace MonoGameTest
             {
                 foreach (SpriteComponent spriteComponent in visualObject.spriteComponents)
                 {
-                    _spriteBatch.Draw(textures[spriteComponent.currentSprite], new Vector2(visualObject.xPos - (int)cameraXPos + windowWidth / 2 + spriteComponent.xOffset, visualObject.yPos - (int)cameraYPos + windowHeight / 2 + spriteComponent.yOffset), Color.White);
+                    _spriteBatch.Draw(textures[spriteComponent.currentSprite], 
+                        new Vector2(visualObject.xPos - (int)cameraXPos + windowWidth / 2 + spriteComponent.xOffset, 
+                        visualObject.yPos - (int)cameraYPos + windowHeight / 2 + spriteComponent.yOffset), 
+                        Color.White);
                 }
             }
             _spriteBatch.End();
