@@ -132,6 +132,7 @@ namespace MonoGameTest
             files = Directory.GetFiles(PATH + "graphics\\tiles\\");
             foreach (string file in files)
             {
+                Debug.WriteLine(file);
                 string fileName = "tiles/" + file.Split("\\")[file.Split("\\").Length - 1];
                 fileName = fileName.Substring(0, fileName.Length - 4);
                 textures.Add(fileName, Content.Load<Texture2D>("graphics\\" + fileName));
