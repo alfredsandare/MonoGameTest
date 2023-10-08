@@ -196,9 +196,9 @@ namespace MonoGameTest
                 bool added = false;
                 for (int j = 0; j<sortedVisualObjects.Count; j++)
                 {
-                    if (visualObjects[i].layer > sortedVisualObjects[j].layer)
+                    if (visualObjects[i].layer <= sortedVisualObjects[j].layer)
                     {
-                        sortedVisualObjects.Insert(j+1, visualObjects[i]);
+                        sortedVisualObjects.Insert(j, visualObjects[i]);
                         added = true;
                         break;
                     }
@@ -215,7 +215,9 @@ namespace MonoGameTest
                         visualObject.yPos - (int)cameraYPos + windowHeight / 2 + spriteComponent.yOffset), 
                         Color.White);
                 }
+                Debug.WriteLine(visualObject.layer);
             }
+            Debug.WriteLine("");
             _spriteBatch.End();
 
             base.Draw(gameTime);
