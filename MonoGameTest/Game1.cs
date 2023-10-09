@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Transactions;
 
 namespace MonoGameTest
 {
@@ -18,6 +19,7 @@ namespace MonoGameTest
         readonly string PATH = Directory.GetCurrentDirectory() + "\\Content\\";
 
         List<VisualObject> visualObjects;
+        List<VisualObject> sortedVisualObjects = new List<VisualObject>();
         IDictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
        
         float cameraXPos = 0;
@@ -34,6 +36,7 @@ namespace MonoGameTest
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
+
 
         public Game1()
         {
@@ -72,7 +75,7 @@ namespace MonoGameTest
             };
 
             visualObjects = new List<VisualObject>();
-            player = new Player(new List<SpriteComponent> { new SpriteComponent("player_stand_right", 0, 0, playerAnimations) }, -60, 100, 27, 54, 1, true);
+            player = new Player(new List<SpriteComponent> { new SpriteComponent("player_stand_right", 0, 0, playerAnimations) }, 0, 0, 27, 56, 1, true);
             player.SetHitboxOffset(24, 9);
 
             string[] test;
@@ -109,8 +112,26 @@ namespace MonoGameTest
 
                 Debug.WriteLine(Convert.ToBoolean(Convert.ToInt32(data[7])));
 
-                visualObjects.Add(new VisualObject(new List<SpriteComponent> { new SpriteComponent(data[1], 0, 0, null) }, pos[0], pos[1], Convert.ToInt32(data[4]), Convert.ToInt32(data[5]), Convert.ToInt32(data[6]), Convert.ToBoolean(Convert.ToInt32(data[7]))));
+                visualObjects.Add(new VisualObject(new List<SpriteComponent> { new SpriteComponent(data[1] != "None" ? data[1] : null, 0, 0, null) }, pos[0], pos[1], Convert.ToInt32(data[4]), Convert.ToInt32(data[5]), Convert.ToInt32(data[6]), Convert.ToBoolean(Convert.ToInt32(data[7]))));
             }
+
+            
+            sortedVisualObjects.Add(player);
+            for (int i = 0; i < visualObjects.Count; i++)
+            {
+                bool added = false;
+                for (int j = 0; j < sortedVisualObjects.Count; j++)
+                {
+                    if (visualObjects[i].layer <= sortedVisualObjects[j].layer)
+                    {
+                        sortedVisualObjects.Insert(j, visualObjects[i]);
+                        added = true;
+                        break;
+                    }
+                }
+                if (!added) sortedVisualObjects.Add(visualObjects[i]);
+            }
+
 
             base.Initialize();
         }
@@ -190,38 +211,23 @@ namespace MonoGameTest
             int windowWidth = GraphicsDevice.PresentationParameters.BackBufferWidth;
             int windowHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
 
-            List<VisualObject> sortedVisualObjects = new List<VisualObject>();
-            sortedVisualObjects.Add(player);
-            for (int i = 0; i < visualObjects.Count; i++)
-            {
-                bool added = false;
-                for (int j = 0; j<sortedVisualObjects.Count; j++)
-                {
-                    if (visualObjects[i].layer <= sortedVisualObjects[j].layer)
-                    {
-                        sortedVisualObjects.Insert(j, visualObjects[i]);
-                        added = true;
-                        break;
-                    }
-                }
-                if (!added) sortedVisualObjects.Insert(0, visualObjects[i]);
-            }
-
             foreach (VisualObject visualObject in sortedVisualObjects)
             {
                 foreach (SpriteComponent spriteComponent in visualObject.spriteComponents)
                 {
+                    if (spriteComponent.currentSprite == null) continue;
                     _spriteBatch.Draw(textures[spriteComponent.currentSprite], 
                         new Vector2(visualObject.xPos - (int)cameraXPos + windowWidth / 2 + spriteComponent.xOffset, 
                         visualObject.yPos - (int)cameraYPos + windowHeight / 2 + spriteComponent.yOffset), 
                         Color.White);
                 }
-                Debug.WriteLine(visualObject.layer);
             }
-            Debug.WriteLine("");
             _spriteBatch.End();
 
             base.Draw(gameTime);
+
+            double framerate = (1 / gameTime.ElapsedGameTime.TotalSeconds);
+            Debug.WriteLine(framerate);
         }
     }
 }

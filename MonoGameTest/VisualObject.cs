@@ -75,7 +75,6 @@ public class VisualObject
 							direction = j;
 						}
 					}
-					Debug.WriteLine("snapping to {0}", direction);
 					switch (direction)
 					{
 						case 0:
