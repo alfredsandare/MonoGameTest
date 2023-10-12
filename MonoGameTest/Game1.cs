@@ -75,8 +75,8 @@ namespace MonoGameTest
             };
 
             visualObjects = new List<VisualObject>();
-            player = new Player(new List<SpriteComponent> { new SpriteComponent("player_stand_right", 0, 0, playerAnimations) }, 0, 0, 27, 56, 1, true);
-            player.SetHitboxOffset(24, 9);
+            player = new Player(new List<SpriteComponent> { new SpriteComponent("player_stand_right", 0, 0, playerAnimations) }, 0, 0, 18, 36, 1, true);
+            player.SetHitboxOffset(16, 6);
 
             string[] test;
 
@@ -150,15 +150,20 @@ namespace MonoGameTest
                 textures.Add(fileName, Content.Load<Texture2D>("graphics\\" + fileName));
             }
 
-            files = Directory.GetFiles(PATH + "graphics\\tiles\\");
-            foreach (string file in files)
+            string[] subfolders = new string[] { "tiles", "worker" };
+            foreach (string subfolder in subfolders)
             {
-                Debug.WriteLine(file);
-                string fileName = "tiles/" + file.Split("\\")[file.Split("\\").Length - 1];
-                fileName = fileName.Substring(0, fileName.Length - 4);
-                textures.Add(fileName, Content.Load<Texture2D>("graphics\\" + fileName));
+                files = Directory.GetFiles(PATH + $"graphics\\{subfolder}\\");
+                foreach (string file in files)
+                {
+                    Debug.WriteLine(file);
+                    string fileName = subfolder + "/" + file.Split("\\")[file.Split("\\").Length - 1];
+                    fileName = fileName.Substring(0, fileName.Length - 4);
+                    textures.Add(fileName, Content.Load<Texture2D>("graphics\\" + fileName));
+                }
             }
             //map = Content.Load<string>("map");
+
         }
 
         protected override void Update(GameTime gameTime)
