@@ -15,8 +15,8 @@ public class VisualObject
 	public int hitboxHeight;
 	public int layer;
 	public bool isSolid;
-	private int hitboxXOffset;
-	private int hitboxYOffset;
+	public int hitboxXOffset;
+	public int hitboxYOffset;
 
     public VisualObject(List<SpriteComponent> spriteComponents, int xPos, int yPos, int hitBoxWidth, int hitboxHeight, int layer, bool isSolid)
 	{
@@ -37,65 +37,7 @@ public class VisualObject
 		this.hitboxYOffset = y;
 	}
 
-	public void Move (string xDirection, string yDirection, double speed, double deltaTime, List<VisualObject> visualObjects, int thisObjectIndex)
-	{
-		if (xDirection != "" && yDirection != "")
-		{
-			speed *= 1 / (Math.Pow(2, 0.5));
-        }
-
-		int xMultiplier = 0; if (xDirection == "w") xMultiplier = 1; else if (xDirection == "e") xMultiplier = -1;
-		int yMultiplier = 0; if (yDirection == "s") yMultiplier = 1; else if (yDirection == "n") yMultiplier = -1;
-
-		this.xPos += (int)(speed * deltaTime * xMultiplier);
-		this.yPos += (int)(speed * deltaTime * yMultiplier);
-
-		for (int i = 0; i < visualObjects.Count; i++)
-		{
-			if (i != thisObjectIndex && EntitiesOverlap(visualObjects[i].xPos, visualObjects[i].yPos, visualObjects[i].hitboxWidth, visualObjects[i].hitboxHeight))
-			{
-				//Debug.WriteLine("{0} {1} {2} {3}", visualObjects[i].xPos, visualObjects[i].yPos, visualObjects[i].hitboxWidth, visualObjects[i].hitboxHeight);
-				if (this.isSolid && visualObjects[i].isSolid) 
-				{
-					int[] distances =
-					{
-						Math.Abs(visualObjects[i].xPos - (this.xPos + this.hitboxXOffset + this.hitboxWidth)), //snap to the left
-						Math.Abs(visualObjects[i].yPos - (this.yPos + this.hitboxYOffset + this.hitboxHeight)), //snap to the top
-						Math.Abs(visualObjects[i].xPos + visualObjects[i].hitboxWidth - this.xPos - this.hitboxXOffset), //snap to the right
-						Math.Abs(visualObjects[i].yPos + visualObjects[i].hitboxHeight - this.yPos - this.hitboxYOffset), //snap to the bottom
-					};
-
-					int smallestDistance = 999999999;
-					int direction = 0;
-					for (int j=0; j<4; j++) 
-					{
-						if (distances[j] < smallestDistance)
-						{
-							smallestDistance = distances[j];
-							direction = j;
-						}
-					}
-					switch (direction)
-					{
-						case 0:
-							this.xPos -= smallestDistance;
-							break;
-						case 1:
-							this.yPos -= smallestDistance;
-							break;
-						case 2:
-							this.xPos += smallestDistance;
-							break;
-						case 3:
-							this.yPos += smallestDistance;
-							break;
-						default:
-							break;
-					}
-				}	
-			}
-		}
-    }
+	
 
     public bool EntitiesOverlap(int x, int y, int width, int height)
     {

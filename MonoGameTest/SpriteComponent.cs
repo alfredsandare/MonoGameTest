@@ -22,7 +22,8 @@ public class SpriteComponent
 		if (animations != null)
 		{
 			this.currentAnimation = new List<string>(animations.Keys)[0];
-		} else
+		} 
+		else
 		{
 			this.currentAnimation = null;
 		}
