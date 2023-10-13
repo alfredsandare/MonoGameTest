@@ -8,8 +8,8 @@ using System.Diagnostics;
 
 public class VisualObject
 {
-    public List<SpriteComponent> spriteComponents;
-	public int xPos;
+    IDictionary<string, Animation> animations;
+    public int xPos;
 	public int yPos;
 	public int hitboxWidth;
 	public int hitboxHeight;
@@ -17,10 +17,13 @@ public class VisualObject
 	public bool isSolid;
 	public int hitboxXOffset;
 	public int hitboxYOffset;
+	public string defaultSprite;
+	public string currentSprite;
+	public string currentAnimation;
 
-    public VisualObject(List<SpriteComponent> spriteComponents, int xPos, int yPos, int hitBoxWidth, int hitboxHeight, int layer, bool isSolid)
+    public VisualObject(IDictionary<string, Animation> animations, int xPos, int yPos, int hitBoxWidth, int hitboxHeight, int layer, bool isSolid, string defaultSprite)
 	{
-		this.spriteComponents = spriteComponents;
+		this.animations = animations;
 		this.xPos = xPos;
 		this.yPos = yPos;
 		this.hitboxWidth = hitBoxWidth;
@@ -29,15 +32,24 @@ public class VisualObject
 		this.isSolid = isSolid;
 		this.hitboxXOffset = 0;
 		this.hitboxYOffset = 0;
-	}
+		this.defaultSprite = defaultSprite;
+		this.currentSprite = defaultSprite;
+        this.animations = animations;
+        if (animations != null)
+        {
+            this.currentAnimation = new List<string>(animations.Keys)[0];
+        }
+        else
+        {
+            this.currentAnimation = null;
+        }
+    }
 
 	public void SetHitboxOffset(int x, int y)
 	{
 		this.hitboxXOffset = x;
 		this.hitboxYOffset = y;
 	}
-
-	
 
     public bool EntitiesOverlap(int x, int y, int width, int height)
     {
@@ -64,5 +76,19 @@ public class VisualObject
 			}
 		}
         return false;
+    }
+
+    public void UpdateAnimation(double deltaTime)
+    {
+        if (animations == null) return;
+        this.animations[this.currentAnimation].Update(deltaTime);
+        this.currentSprite = this.animations[this.currentAnimation].currentSprite;
+    }
+
+    public void SwitchAnimation(string newAnimation)
+    {
+        if (this.currentAnimation == newAnimation) return;
+        this.animations[this.currentAnimation].Reset();
+        this.currentAnimation = newAnimation;
     }
 }

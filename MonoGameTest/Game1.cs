@@ -13,9 +13,6 @@ namespace MonoGameTest
 {
     public class Game1 : Game
     {
-
-        //readonly string string PATH = "C:\\Users\\alfre\\Source\\repos\\alfredsandare\\MonoGameTest\\MonoGameTest\\Content\\";
-        //readonly string PATH = "C:\\users\\04alsa25\\source\\repos\\MonoGameTest\\MonoGameTest\\Content\\";
         readonly string PATH = Directory.GetCurrentDirectory() + "\\Content\\";
 
         List<VisualObject> visualObjects;
@@ -24,8 +21,6 @@ namespace MonoGameTest
        
         float cameraXPos = 0;
         float cameraYPos = 0;
-
-        double playerSpeed = 150f;
 
         char yDirection = 'n';
         char xDirection = 'e';
@@ -75,46 +70,27 @@ namespace MonoGameTest
             };
 
             visualObjects = new List<VisualObject>();
-            player = new Player(new List<SpriteComponent> { new SpriteComponent("player_stand_right", 0, 0, playerAnimations) }, 0, 0, 18, 36, 1, true);
+            player = new Player(playerAnimations, 0, 0, 18, 36, 1, "player_stand_down");
             player.SetHitboxOffset(16, 6);
 
-            string[] test;
-
-            /*
-            using (var stream = TitleContainer.OpenStream("Content\\map.txt"))
-            {
-                using (var reader = new StreamReader(stream))
-                {
-                    test = reader.ReadToEnd().Split("\r\n");
-                }
-            }
-            */
-
-
-            test = File.ReadAllLines(PATH+"map.txt");
+            string[] test = File.ReadAllLines(PATH+"map.txt");
 
             foreach(string s  in test)
             {
                 if (s.ToCharArray()[0] == '/' && s.ToCharArray()[1] == '/') continue;
                 string[] data = s.Split(" ");
-                int[] pos = new int[2];
-                for (int i=0; i<2; i++)
-                {
-                    if (data[i+2].Contains("*"))
-                    {
-                        string[] nums = data[i + 2].Split("*");
-                        pos[i] = Convert.ToInt32(nums[0]) * Convert.ToInt32(nums[1]);
-                    } else
-                    {
-                        pos[i] = Convert.ToInt32(data[i + 2]);
-                    }
-                }
-
-                Debug.WriteLine(Convert.ToBoolean(Convert.ToInt32(data[7])));
-
-                visualObjects.Add(new VisualObject(new List<SpriteComponent> { new SpriteComponent(data[1] != "None" ? data[1] : null, 0, 0, null) }, pos[0], pos[1], Convert.ToInt32(data[4]), Convert.ToInt32(data[5]), Convert.ToInt32(data[6]), Convert.ToBoolean(Convert.ToInt32(data[7]))));
+                
+                visualObjects.Add(new VisualObject(
+                    null,
+                    Convert.ToInt32(data[2]),
+                    Convert.ToInt32(data[3]),
+                    Convert.ToInt32(data[4]),
+                    Convert.ToInt32(data[5]),
+                    Convert.ToInt32(data[6]),
+                    Convert.ToBoolean(Convert.ToInt32(data[7])),
+                    data[1] != "None" ? data[1] : null
+                    ));
             }
-
             
             sortedVisualObjects.Add(player);
             for (int i = 0; i < visualObjects.Count; i++)
@@ -131,16 +107,12 @@ namespace MonoGameTest
                 }
                 if (!added) sortedVisualObjects.Add(visualObjects[i]);
             }
-
-
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            //foreach (string s in graphics) textures.Add(s, Content.Load<Texture2D>(s));
 
             string[] files = Directory.GetFiles(PATH + "graphics\\");
             foreach (string file in files)
@@ -162,8 +134,6 @@ namespace MonoGameTest
                     textures.Add(fileName, Content.Load<Texture2D>("graphics\\" + fileName));
                 }
             }
-            //map = Content.Load<string>("map");
-
         }
 
         protected override void Update(GameTime gameTime)
@@ -172,38 +142,22 @@ namespace MonoGameTest
                 Exit();
 
             var kstate = Keyboard.GetState();
-            //if (!kstate.IsKeyDown(Keys.S) && kstate.IsKeyDown(Keys.W)) visualObjects[0].yPos -= (int)(cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds);
-            //else if (!kstate.IsKeyDown(Keys.W) && kstate.IsKeyDown(Keys.S)) visualObjects[0].yPos += (int)(cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds);
-            //if (!kstate.IsKeyDown(Keys.D) && kstate.IsKeyDown(Keys.A)) visualObjects[0].xPos -= (int)(cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds);
-            //else if (!kstate.IsKeyDown(Keys.A) && kstate.IsKeyDown(Keys.D)) visualObjects[0].xPos += (int)(cameraSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds);
-
             string xDirection = "";
             string yDirection = "";
             if (!kstate.IsKeyDown(Keys.S) && kstate.IsKeyDown(Keys.W)) yDirection = "n";
             else if (!kstate.IsKeyDown(Keys.W) && kstate.IsKeyDown(Keys.S)) yDirection = "s";
             if (!kstate.IsKeyDown(Keys.D) && kstate.IsKeyDown(Keys.A)) xDirection = "e";
             else if (!kstate.IsKeyDown(Keys.A) && kstate.IsKeyDown(Keys.D)) xDirection = "w";
-            player.MovePlayer(xDirection, yDirection, playerSpeed, (double)gameTime.ElapsedGameTime.TotalSeconds, visualObjects);
-
-            //if (yDirection == "n") player.spriteComponents[0].SwitchAnimation("player_walk_up");
-            //else if (yDirection == "s") player.spriteComponents[0].SwitchAnimation("player_walk_down");
-            //else player.spriteComponents[0].SwitchAnimation("player_stand_down");
-
-            //if (xDirection == "e") player.spriteComponents[0].SwitchAnimation("player_walk_left");
-            //else if (xDirection == "w") player.spriteComponents[0].SwitchAnimation("player_walk_right");
-            //else player.spriteComponents[0].SwitchAnimation("player_stand_down");
+            player.MovePlayer(xDirection, yDirection, player.speed, (double)gameTime.ElapsedGameTime.TotalSeconds, visualObjects);
 
             cameraXPos = player.xPos;
             cameraYPos = player.yPos;
 
             foreach (VisualObject visualObject in visualObjects)
             {
-                foreach (SpriteComponent spriteComponent in visualObject.spriteComponents)
-                {
-                    spriteComponent.UpdateAnimation(gameTime.ElapsedGameTime.TotalSeconds);
-                }
+                visualObject.UpdateAnimation(gameTime.ElapsedGameTime.TotalSeconds);
             }
-            player.spriteComponents[0].UpdateAnimation(gameTime.ElapsedGameTime.TotalSeconds);
+            player.UpdateAnimation(gameTime.ElapsedGameTime.TotalSeconds);
             base.Update(gameTime);
         }
 
@@ -218,14 +172,11 @@ namespace MonoGameTest
 
             foreach (VisualObject visualObject in sortedVisualObjects)
             {
-                foreach (SpriteComponent spriteComponent in visualObject.spriteComponents)
-                {
-                    if (spriteComponent.currentSprite == null) continue;
-                    _spriteBatch.Draw(textures[spriteComponent.currentSprite], 
-                        new Vector2(visualObject.xPos - (int)cameraXPos + windowWidth / 2 + spriteComponent.xOffset, 
-                        visualObject.yPos - (int)cameraYPos + windowHeight / 2 + spriteComponent.yOffset), 
-                        Color.White);
-                }
+                if (visualObject.currentSprite == null) continue;
+                _spriteBatch.Draw(textures[visualObject.currentSprite],
+                    new Vector2(visualObject.xPos - (int)cameraXPos + windowWidth / 2,
+                    visualObject.yPos - (int)cameraYPos + windowHeight / 2),
+                    Color.White);
             }
             _spriteBatch.End();
 
