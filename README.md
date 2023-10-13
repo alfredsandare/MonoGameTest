@@ -1,4 +1,4 @@
 # Loggbok för MonoGameTest
 
-## H2 Test
-Test
+## 2023-10-13
+Tog bort SpriteComponents helt.
