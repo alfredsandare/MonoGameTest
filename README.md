@@ -1,8 +1,9 @@
 # Loggbok för MonoGameTest
 
 ## 2023-10-17
-Moved amimations from Player.cs to Creature.cs, in order for NPCs to have animations.
+Moved animations from Player.cs to Creature.cs, in order for NPCs to have animations.
 Added animations for the worker NPC.
+Moved animations data to a separate file, and some code to interpret the data.
 
 ## 2023-10-13
 Removed SpriteComponents entirely.
