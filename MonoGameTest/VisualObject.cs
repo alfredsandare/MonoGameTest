@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 public class VisualObject
 {
-    IDictionary<string, Animation> animations;
+    public IDictionary<string, Animation> animations;
     public int xPos;
 	public int yPos;
 	public int hitboxWidth;
@@ -34,7 +34,6 @@ public class VisualObject
 		this.hitboxYOffset = 0;
 		this.defaultSprite = defaultSprite;
 		this.currentSprite = defaultSprite;
-        this.animations = animations;
         if (animations != null)
         {
             this.currentAnimation = new List<string>(animations.Keys)[0];

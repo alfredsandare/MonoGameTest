@@ -1,23 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 
 public class Animation
 {
-	List<string> sprites;
-	List<float> framePoints;
+	public List<string> sprites;
+	public List<float> framePoints;
 	double sequenceLength;
 	double sequenceProgress;
 	public string currentSprite;
 
 
-	public Animation(List<string> sprites, List<float> framePoints)
+	public Animation()
 	{
-		this.sprites = sprites;
-		this.framePoints = framePoints;
-		this.sequenceLength = framePoints.Last();
-		this.sequenceProgress = 0;
+		sprites = new List<string>();
+		framePoints = new List<float>();
+		sequenceLength = 0;
+		sequenceProgress = 0;
+	}
+
+	public void Add(string sprite, float point)
+	{
+		sprites.Add(sprite);
+		framePoints.Add(point);
+		sequenceLength = framePoints.Last();
 	}
 
 	public void Update(double deltaTime)

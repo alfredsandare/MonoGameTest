@@ -692,3 +692,4 @@ VisualObject tiles/139 608 96 32 32 10 0
 VisualObject tiles/139 608 128 32 32 10 0
 custom_hitbox None 140 100 20 1 0 1
 custom_hitbox None 608 128 6 32 0 1
+custom_hitbox None 608 128 6 32 0 1

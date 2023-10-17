@@ -1,26 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 public class Creature : VisualObject
 {
-	public Creature(IDictionary<string, Animation> animations, int xPos, int yPos, int hitBoxWidth, int hitboxHeight, int layer, bool isSolid, string defaultSprite) 
+    public double baseSpeed;
+    string faceDirection;
+	public Creature(IDictionary<string, Animation> animations, int xPos, int yPos, int hitBoxWidth, int hitboxHeight, int layer, bool isSolid, string defaultSprite, double baseSpeed) 
 		: base(animations, xPos, yPos, hitBoxWidth, hitboxHeight, layer, isSolid, defaultSprite)
     {
+        this.baseSpeed = baseSpeed;
+        faceDirection = "e";
+    }
 
-	}
-
-    public void Move(string xDirection, string yDirection, double speed, double deltaTime, List<VisualObject> visualObjects, int thisObjectIndex)
+    public void Move(string xDirection, string yDirection, double deltaTime, List<VisualObject> visualObjects, int thisObjectIndex)
     {
+        double speed = baseSpeed;
         if (xDirection != "" && yDirection != "")
         {
-            speed *= 1 / (Math.Pow(2, 0.5));
+            speed = baseSpeed / (Math.Pow(2, 0.5));
         }
 
         int xMultiplier = 0; if (xDirection == "w") xMultiplier = 1; else if (xDirection == "e") xMultiplier = -1;
         int yMultiplier = 0; if (yDirection == "s") yMultiplier = 1; else if (yDirection == "n") yMultiplier = -1;
 
-        base.xPos += (int)(speed * deltaTime * xMultiplier);
-        base.yPos += (int)(speed * deltaTime * yMultiplier);
+        xPos += (int)(speed * deltaTime * xMultiplier);
+        yPos += (int)(speed * deltaTime * yMultiplier);
+
+        //if (hitboxWidth == 20) Debug.WriteLine(xDirection);
 
         for (int i = 0; i < visualObjects.Count; i++)
         {
@@ -66,6 +73,17 @@ public class Creature : VisualObject
                     }
                 }
             }
+        }
+        if (xDirection == "e" && animations.Keys.Contains("move_w")) { SwitchAnimation("move_w"); faceDirection = "e"; }
+        else if (xDirection == "w" && animations.Keys.Contains("move_e")) { SwitchAnimation("move_e"); faceDirection = "w"; }
+        else if (yDirection == "n" && animations.Keys.Contains("move_n")) { SwitchAnimation("move_n"); faceDirection = "n"; }
+        else if (yDirection == "s" && animations.Keys.Contains("move_s")) { SwitchAnimation("move_s"); faceDirection = "s"; }
+        else if (xDirection == "" && yDirection == "")
+        {
+            if (faceDirection == "e" && animations.Keys.Contains("stand_w")) SwitchAnimation("stand_w");
+            else if (faceDirection == "w" && animations.Keys.Contains("stand_e")) SwitchAnimation("stand_e");
+            else if (faceDirection == "n" && animations.Keys.Contains("stand_n")) SwitchAnimation("stand_n");
+            else if (faceDirection == "s" && animations.Keys.Contains("stand_s")) SwitchAnimation("stand_s");
         }
     }
 }
