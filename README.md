@@ -4,6 +4,7 @@
 Moved animations from Player.cs to Creature.cs, in order for NPCs to have animations.
 Added animations for the worker NPC.
 Moved animations data to a separate file, and some code to interpret the data.
+Started working on dialogue.
 
 ## 2023-10-13
 Removed SpriteComponents entirely.
