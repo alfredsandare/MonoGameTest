@@ -1,5 +1,8 @@
 # Loggbok för MonoGameTest
 
+## 2023-10-24
+Worked with NPC dialogue.
+
 ## 2023-10-20
 Added a InputHandler with methods that can check for keydown/keyup events.
 
