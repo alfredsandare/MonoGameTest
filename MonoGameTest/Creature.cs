@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection.Metadata.Ecma335;
 
 public class Creature : VisualObject
 {
     public double baseSpeed;
     string faceDirection;
+    public bool movementLocked = false;
+
 	public Creature(IDictionary<string, Animation> animations, int xPos, int yPos, int hitBoxWidth, int hitboxHeight, int layer, bool isSolid, string defaultSprite, double baseSpeed) 
 		: base(animations, xPos, yPos, hitBoxWidth, hitboxHeight, layer, isSolid, defaultSprite)
     {

@@ -9,7 +9,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Numerics;
+using System.Net.Http.Headers;
+//using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Transactions;
 
@@ -37,6 +38,7 @@ namespace MonoGameTest
 
         SpriteFont font;
 
+        InputHandler inputHandler;
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
@@ -53,9 +55,14 @@ namespace MonoGameTest
 
         protected override void Initialize()
         {
-            _graphics.IsFullScreen = true;
+            //_graphics.IsFullScreen = true;
+            _graphics.PreferredBackBufferWidth = 1280;
+            _graphics.PreferredBackBufferHeight = 720;
+            _graphics.ApplyChanges();
 
             var animations = new Dictionary<string, Dictionary<string, Animation>>();
+
+            inputHandler = new InputHandler();
 
             string[] animationsFile = File.ReadAllLines(PATH + "animations.txt");
             string trimmedLine;
@@ -88,14 +95,34 @@ namespace MonoGameTest
                 }
             }
 
+            string[] dialogueFile = File.ReadAllLines(PATH + "dialogue.txt");
+            string currentSet = "";
+            IDictionary<string, List<string>> dialogue = new Dictionary<string, List<string>>();
+            foreach (string line in dialogueFile)
+            {
+                if (string.IsNullOrEmpty(line)) continue;
+                if (line.Substring(0, 1) == "#")
+                {
+                    dialogue.Add(line.Substring(1).Trim(), new List<string>());
+                    currentSet = line.Substring(1).Trim();
+                }
+                else
+                {
+                    dialogue[currentSet].Add(line.Trim());
+                }
+            }
 
             visualObjects = new List<VisualObject>();
 
-            player = new Player(animations["player"], 0, 0, 18, 36, 1, "player_stand_down", 150d);
+            player = new Player(animations["player"], 0, 0, 18, 36, 5, "player_stand_down", 150d);
             player.SetHitboxOffset(16, 6);
 
-            NPCs.Add(new NPC(animations["worker"], 0, 0, 18, 36, 1, "worker_stand_down", 100d, "Worker", "worker1"));
+            NPCs.Add(new NPC(animations["worker"], 0, 0, 18, 36, 5, "worker_stand_down", 100d, "Worker", "worker1"));
             NPCs[0].SetHitboxOffset(27, 21);
+            NPCs[0].SetBehavior("home", 400, -430);
+            NPCs[0].AddDialogue("basic", dialogue["worker"]);
+            NPCs[0].dialogueAvailable = true;
+            NPCs[0].currentDialogue = "basic";
 
             string[] test = File.ReadAllLines(PATH+"map.txt");
 
@@ -115,23 +142,10 @@ namespace MonoGameTest
                     data[1] != "None" ? data[1] : null
                 ));
             }
-            
-            sortedVisualObjects.Add(player);
-            foreach(NPC npc in NPCs) sortedVisualObjects.Add(npc);
-            for (int i = 0; i < visualObjects.Count; i++)
-            {
-                bool added = false;
-                for (int j = 0; j < sortedVisualObjects.Count; j++)
-                {
-                    if (visualObjects[i].layer <= sortedVisualObjects[j].layer)
-                    {
-                        sortedVisualObjects.Insert(j, visualObjects[i]);
-                        added = true;
-                        break;
-                    }
-                }
-                if (!added) sortedVisualObjects.Add(visualObjects[i]);
-            }
+
+            //Debug.WriteLine(visualObjects[668].currentSprite);
+
+            SortVisualObjects();
             base.Initialize();
         }
 
@@ -164,41 +178,87 @@ namespace MonoGameTest
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
 
-            var kstate = Keyboard.GetState();
+            inputHandler.Update();
+
             string xDirection = "";
             string yDirection = "";
-            if (!kstate.IsKeyDown(Keys.S) && kstate.IsKeyDown(Keys.W)) yDirection = "n";
-            else if (!kstate.IsKeyDown(Keys.W) && kstate.IsKeyDown(Keys.S)) yDirection = "s";
-            if (!kstate.IsKeyDown(Keys.D) && kstate.IsKeyDown(Keys.A)) xDirection = "e";
-            else if (!kstate.IsKeyDown(Keys.A) && kstate.IsKeyDown(Keys.D)) xDirection = "w";
+            if (!inputHandler.IsPressed(Keys.S) && inputHandler.IsPressed(Keys.W)) yDirection = "n";
+            else if (!inputHandler.IsPressed(Keys.W) && inputHandler.IsPressed(Keys.S)) yDirection = "s";
+            if (!inputHandler.IsPressed(Keys.D) && inputHandler.IsPressed(Keys.A)) xDirection = "e";
+            else if (!inputHandler.IsPressed(Keys.A) && inputHandler.IsPressed(Keys.D)) xDirection = "w";
+
+            if (inputHandler.KeyDown(Keys.E) && NPCToInteractWith != null && !isInDialogue)
+            {
+                isInDialogue = true;
+                NPCs[GetNPCIndexById(NPCToInteractWith)].movementLocked = true;
+            }
+            else if (inputHandler.KeyDown(Keys.E) && isInDialogue)
+            {
+                ExitDialogue();
+            }
+
+            if (isInDialogue && (inputHandler.KeyDown(Keys.Space) || inputHandler.MouseButtonDown("LMB")))
+            {
+                NPC npc = NPCs[GetNPCIndexById(NPCToInteractWith)];
+                if (npc.dialogueProgress + 1 < npc.dialogue[npc.currentDialogue].Count) npc.dialogueProgress++;
+                else ExitDialogue();
+            }
+
             player.Move(xDirection, yDirection, (double)gameTime.ElapsedGameTime.TotalSeconds, visualObjects, -1);
-            
-            cameraXPos = player.xPos;
-            cameraYPos = player.yPos;
+            cameraXPos = player.xPos + 25;
+            cameraYPos = player.yPos + 24;
+
+            SortVisualObjects();
 
             foreach (VisualObject visualObject in visualObjects) visualObject.UpdateAnimation(gameTime.ElapsedGameTime.TotalSeconds);
             foreach (NPC npc in NPCs) npc.Update(gameTime.ElapsedGameTime.TotalSeconds, visualObjects);
 
-            int playerX = player.xPos + player.hitboxXOffset + (int)player.hitboxWidth / 2;
-            int playerY = player.yPos + player.hitboxYOffset + (int)player.hitboxHeight / 2;
-            bool foundNPC = false;
-            for (int i = 0; i<NPCs.Count; i++)
+            foreach (VisualObject visualObject in visualObjects)
             {
-                int NPCX = NPCs[i].xPos + NPCs[i].hitboxXOffset + (int)NPCs[i].hitboxWidth / 2;
-                int NPCY = NPCs[i].yPos + NPCs[i].hitboxYOffset + (int)NPCs[i].hitboxHeight / 2;
-                if (Distance(NPCX, NPCY, playerX, playerY) < 60)
+                if (!visualObject.isVariableLayer) continue;
+                
+                if (player.yPos < visualObject.yPos + visualObject.variableLayerYOffset)
                 {
-                    NPCToInteractWith = NPCs[i].id;
-                    foundNPC = true;
-                    break;
+                    visualObject.layer = 10;
+                }
+                else
+                {
+                    visualObject.layer = 1;
                 }
             }
-            if (!foundNPC)
+
+            int playerX = player.xPos + player.hitboxXOffset + (int)player.hitboxWidth / 2;
+            int playerY = player.yPos + player.hitboxYOffset + (int)player.hitboxHeight / 2;
+            if (!isInDialogue)
             {
-                NPCToInteractWith = null;
+                bool foundNPC = false;
+                for (int i = 0; i<NPCs.Count; i++)
+                {
+                    int NPCX = NPCs[i].xPos + NPCs[i].hitboxXOffset + (int)NPCs[i].hitboxWidth / 2;
+                    int NPCY = NPCs[i].yPos + NPCs[i].hitboxYOffset + (int)NPCs[i].hitboxHeight / 2;
+                    if (Util.Distance(NPCX, NPCY, playerX, playerY) < 60)
+                    {
+                        NPCToInteractWith = NPCs[i].id;
+                        foundNPC = true;
+                        break;
+                    }
+                }
+                if (!foundNPC)
+                {
+                    NPCToInteractWith = null;
+                }
+            }
+            else
+            {
+                int NPCIndex = GetNPCIndexById(NPCToInteractWith);
+                int NPCX = NPCs[NPCIndex].xPos + NPCs[NPCIndex].hitboxXOffset + (int)NPCs[NPCIndex].hitboxWidth / 2;
+                int NPCY = NPCs[NPCIndex].yPos + NPCs[NPCIndex].hitboxYOffset + (int)NPCs[NPCIndex].hitboxHeight / 2;
+                if (Util.Distance(NPCX, NPCY, playerX, playerY) > 90)
+                {
+                    ExitDialogue();
+                }
             }
 
             player.UpdateAnimation(gameTime.ElapsedGameTime.TotalSeconds);
@@ -213,8 +273,6 @@ namespace MonoGameTest
 
             int windowWidth = GraphicsDevice.PresentationParameters.BackBufferWidth;
             int windowHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
-
-            Debug.WriteLine($"width: {windowWidth}, height: {windowHeight}");
 
             foreach (VisualObject visualObject in sortedVisualObjects)
             {
@@ -234,15 +292,25 @@ namespace MonoGameTest
                 _spriteBatch.Draw(textures[visualObject.currentSprite], rect, Color.White);
                 */
             }
-
+            
             if (isInDialogue)
             {
-                _spriteBatch.Draw(textures["dialogue"], new System.Numerics.Vector2(200, 240), Color.White);
-                _spriteBatch.DrawString(font, "Hello There", new System.Numerics.Vector2(200, 240), Color.Black);
+                int dialogueX = windowWidth / 2 - 200;
+                int dialogueY = windowHeight - 220;
+                NPC npc = NPCs[GetNPCIndexById(NPCToInteractWith)];
+                _spriteBatch.Draw(textures["dialogue"], new Vector2(dialogueX, dialogueY), Color.White);
+                _spriteBatch.DrawString(font, npc.name, new Vector2(dialogueX+5, dialogueY+5), Color.Black);
+
+                string text = npc.GetDialogueText();
+                text = WrapLines(text, 400, font);
+
+                _spriteBatch.DrawString(font, text, new System.Numerics.Vector2(dialogueX + 5, dialogueY + 50), Color.Black);
             }
             else if (NPCToInteractWith != null)
             {
-                _spriteBatch.DrawString(font, "Press E to interact with Worker", new System.Numerics.Vector2(200, 240), Color.Black);
+                string text = "Press E to interact with Worker";
+                Vector2 pos = GetTextPosByAnchor(windowWidth / 2, windowHeight / 2 + 40, text, "c", font);
+                _spriteBatch.DrawString(font, text, pos, Color.Black);
             }
 
             _spriteBatch.End();
@@ -253,10 +321,7 @@ namespace MonoGameTest
             //Debug.WriteLine(framerate);
         }
 
-        private double Distance(int x1, int y1, int x2, int y2)
-        {
-            return Math.Pow(Math.Pow(x2 - x1, 2) + Math.Pow(y2-y1, 2), 0.5);
-        }
+        
 
         private int GetNPCIndexById(string id)
         {
@@ -268,6 +333,91 @@ namespace MonoGameTest
                 }
             }
             throw new Exception($"No NPC with id \"{id}\" found.");
+        }
+
+        private Vector2 GetTextPosByAnchor(int x, int y, string text, string anchor, SpriteFont font)
+        {
+            Microsoft.Xna.Framework.Vector2 textSize = font.MeasureString(text);
+            float textX = textSize.X;
+            float textY = textSize.Y;
+            switch (anchor)
+            {
+                case "nw":
+                    return new Vector2(x, y);
+
+                case "n":
+                    return new Vector2(x-textX/2, y);
+
+                case "ne":
+                    return new Vector2(x-textX, y);
+
+                case "e":
+                    return new Vector2(x - textX, y - textY/2);
+
+                case "se":
+                    return new Vector2(x - textX, y - textY);
+
+                case "s":
+                    return new Vector2(x - textX/2, y + textY);
+
+                case "sw":
+                    return new Vector2(x, y + textY);
+
+                case "w":
+                    return new Vector2(x, y-textY/2);
+
+                case "c":
+                    return new Vector2(x-textX/2, y-textY/2);
+
+                default:
+                    throw new Exception($"Invalid text anchor: {anchor}");
+            }
+        }
+
+        private void ExitDialogue()
+        {
+            if (NPCToInteractWith == null) return;
+            NPCs[GetNPCIndexById(NPCToInteractWith)].movementLocked = false;
+            NPCToInteractWith = null;
+            isInDialogue = false;
+        }
+
+        private string WrapLines(string text, int xMax, SpriteFont font)
+        {
+            string[] words = text.Split(" ");
+            string output = "";
+            foreach (string word in words) 
+            {
+                string latestLine = output.Split("\n")[output.Split("\n").Length - 1];
+                if (font.MeasureString(latestLine+word).X > xMax)
+                {
+                    output = output.Trim();
+                    output += "\n";
+                }
+                output += word + " ";
+            }
+            return output.Trim();
+        }
+
+        private void SortVisualObjects()
+        {
+            sortedVisualObjects.Clear();
+            sortedVisualObjects.Add(player);
+            foreach (NPC npc in NPCs) sortedVisualObjects.Add(npc);
+            for (int i = 0; i < visualObjects.Count; i++)
+            {
+                bool added = false;
+                for (int j = 0; j < sortedVisualObjects.Count; j++)
+                {
+                    if (visualObjects[i].layer <= sortedVisualObjects[j].layer)
+                    {
+                        sortedVisualObjects.Insert(j, visualObjects[i]);
+                        added = true;
+                        break;
+                    }
+                }
+                if (!added) sortedVisualObjects.Add(visualObjects[i]);
+            }
         }
     }
 }

@@ -20,6 +20,8 @@ public class VisualObject
 	public string defaultSprite;
 	public string currentSprite;
 	public string currentAnimation;
+	public bool isVariableLayer;
+	public int variableLayerYOffset;
 
     public VisualObject(IDictionary<string, Animation> animations, int xPos, int yPos, int hitBoxWidth, int hitboxHeight, int layer, bool isSolid, string defaultSprite)
 	{
@@ -34,20 +36,27 @@ public class VisualObject
 		this.hitboxYOffset = 0;
 		this.defaultSprite = defaultSprite;
 		this.currentSprite = defaultSprite;
+		isVariableLayer = false;
         if (animations != null)
         {
             this.currentAnimation = new List<string>(animations.Keys)[0];
         }
         else
         {
-            this.currentAnimation = null;
+            currentAnimation = null;
         }
     }
 
 	public void SetHitboxOffset(int x, int y)
 	{
-		this.hitboxXOffset = x;
-		this.hitboxYOffset = y;
+		hitboxXOffset = x;
+		hitboxYOffset = y;
+	}
+
+	public void SetVariableLayer(int yOffset)
+	{
+		isVariableLayer = true;
+		variableLayerYOffset  = yOffset;
 	}
 
     public bool EntitiesOverlap(int x, int y, int width, int height)
@@ -81,13 +90,13 @@ public class VisualObject
     {
         if (animations == null) return;
         this.animations[this.currentAnimation].Update(deltaTime);
-        this.currentSprite = this.animations[this.currentAnimation].currentSprite;
+        currentSprite = this.animations[this.currentAnimation].currentSprite;
     }
 
     public void SwitchAnimation(string newAnimation)
     {
         if (this.currentAnimation == newAnimation) return;
         this.animations[this.currentAnimation].Reset();
-        this.currentAnimation = newAnimation;
+        currentAnimation = newAnimation;
     }
 }

@@ -3001,6 +3001,18 @@
 /processorParam:TextureFormat=Color
 /build:graphics/tiles/99.png
 
+#begin graphics/tree1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:graphics/tree1.png
+
 #begin graphics/worker/stand_down.png
 /importer:TextureImporter
 /processor:TextureProcessor
