@@ -10,8 +10,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
-//using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Transactions;
 
 namespace MonoGameTest
@@ -23,6 +23,7 @@ namespace MonoGameTest
         List<VisualObject> visualObjects;
         List<VisualObject> sortedVisualObjects = new List<VisualObject>();
         IDictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
+        IDictionary<string, bool> map = new Dictionary<string, bool>();
        
         float cameraXPos = 0;
         float cameraYPos = 0;
@@ -141,9 +142,19 @@ namespace MonoGameTest
                     Convert.ToBoolean(Convert.ToInt32(data[7])),
                     data[1] != "None" ? data[1] : null
                 ));
-            }
 
-            //Debug.WriteLine(visualObjects[668].currentSprite);
+                string key = $"{data[2]} {data[3]}";
+                bool value = Convert.ToBoolean(Convert.ToInt32(data[7]));
+
+                if (map.ContainsKey(key))
+                {
+                    if (!map[key]) map[key] = value;
+                }
+                else
+                {
+                    map.Add(key, value);
+                }
+            }
 
             SortVisualObjects();
             base.Initialize();
@@ -279,7 +290,7 @@ namespace MonoGameTest
                 if (visualObject.currentSprite == null) continue;
                 
                 _spriteBatch.Draw(textures[visualObject.currentSprite],
-                    new System.Numerics.Vector2(visualObject.xPos - (int)cameraXPos + windowWidth / 2,
+                    new Vector2(visualObject.xPos - (int)cameraXPos + windowWidth / 2,
                     visualObject.yPos - (int)cameraYPos + windowHeight / 2),
                     Color.White);
                 
@@ -313,8 +324,17 @@ namespace MonoGameTest
                 _spriteBatch.DrawString(font, text, pos, Color.Black);
             }
 
-            _spriteBatch.End();
+            /* PATHFINDING TESTING
+            int i = 0;
+            foreach (Vector2 n in PathFind("256 0", "-64 64")) //480 -384
+            {
+                _spriteBatch.DrawString(font, Convert.ToString(i), new Vector2(n.X - (int)cameraXPos + windowWidth / 2, n.Y - (int)cameraYPos + windowHeight / 2), Color.Black);
+                Debug.WriteLine("");
+                i++;
+            }
+            */
 
+            _spriteBatch.End();
             base.Draw(gameTime);
 
             double framerate = (1 / gameTime.ElapsedGameTime.TotalSeconds);
@@ -418,6 +438,86 @@ namespace MonoGameTest
                 }
                 if (!added) sortedVisualObjects.Add(visualObjects[i]);
             }
+        }
+
+        private List<Vector2> PathFind(string start, string end)
+        {
+            int endX = Convert.ToInt32(end.Split(" ")[0]);
+            int endY = Convert.ToInt32(end.Split(" ")[1]);
+            int startX = Convert.ToInt32(start.Split(" ")[0]);
+            int startY = Convert.ToInt32(start.Split(" ")[1]);
+
+            List<int[]> paths = new List<int[]>();
+            paths.Add(new int[3] {endX, endY, 0});
+
+            bool done = false;
+            int i = 0;
+            while (i < paths.Count() && !done)
+            {
+                int currentX = paths[i][0];
+                int currentY = paths[i][1];
+                List<int[]> adjacentCells = new List<int[]>();
+                try { adjacentCells.Add(new int[3] { currentX, currentY + 32, paths[i][2] + 1 }); } catch { }
+                try { adjacentCells.Add(new int[3] { currentX + 32, currentY, paths[i][2] + 1 }); } catch { }
+                try { adjacentCells.Add(new int[3] { currentX, currentY - 32, paths[i][2] + 1 }); } catch { }
+                try { adjacentCells.Add(new int[3] { currentX - 32, currentY, paths[i][2] + 1 }); } catch { }
+                foreach (int[] cell in adjacentCells)
+                {
+                    if (!map.ContainsKey($"{cell[0]} {cell[1]}")) continue;
+                    if (!map[$"{cell[0]} {cell[1]}"] && paths.Where(path => cell[0] == path[0] && cell[1] == path[1]).Count() == 0)
+                    {
+                        paths.Add(cell);
+                    }
+                }
+                foreach (int[] path in paths)
+                {
+                    if (path[0] == startX && path[1] == startY) 
+                    {
+                        done = true;
+                        break;
+                    }
+                }
+                i++;
+            }
+
+            done = false;
+            List<Vector2> finalPath = new List<Vector2>();
+            finalPath.Add(new Vector2(startX, startY));
+            i = 0;
+            while (!done)
+            {
+                List<int[]> adjacentCells = new List<int[]>();
+                foreach (int[] cell in paths)
+                {
+                    if ((finalPath[i].X == cell[0] - 32 && finalPath[i].Y == cell[1]) ||
+                        (finalPath[i].X == cell[0] && finalPath[i].Y == cell[1] - 32) ||
+                        (finalPath[i].X == cell[0] + 32 && finalPath[i].Y == cell[1]) ||
+                        (finalPath[i].X == cell[0] && finalPath[i].Y == cell[1] + 32))
+                    {
+                        adjacentCells.Add(cell);
+                        break;
+                    }
+                }
+
+                int smallestNumber = 999999;
+                int smallestIndex = 0;
+                int j = 0;
+                foreach (int[] cell in adjacentCells)
+                {
+                    if (cell[2] < smallestNumber) { smallestNumber = cell[2]; smallestIndex = j; }
+                    j++;
+                }
+                finalPath.Add(new Vector2(adjacentCells[smallestIndex][0], adjacentCells[smallestIndex][1]));
+
+                if (finalPath[i+1].X == endX && finalPath[i+1].Y  == endY)
+                {
+                    done = true;
+                }
+
+                i++;
+            }
+
+            return finalPath;
         }
     }
 }
