@@ -1,5 +1,8 @@
 # Loggbok för MonoGameTest
 
+## 2023-11-07
+Added a pathfinding function.
+
 ## 2023-10-24
 Worked with NPC dialogue.
 
