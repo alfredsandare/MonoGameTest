@@ -1,5 +1,11 @@
 # Loggbok för MonoGameTest
 
+## 2023-10-24
+Worked with NPC dialogue.
+
+## 2023-10-20
+Added a InputHandler with methods that can check for keydown/keyup events.
+
 ## 2023-10-17
 Moved animations from Player.cs to Creature.cs, in order for NPCs to have animations.
 Added animations for the worker NPC.
